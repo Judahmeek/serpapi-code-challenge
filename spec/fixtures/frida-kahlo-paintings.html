@@ -1,0 +1,65 @@
+<!doctype html>
+<html><head><title>frida kahlo paintings - Google Search</title></head>
+<body>
+<!-- Structural twin of the Van Gogh page with intentionally different
+     class names (`tile`, `lbl`, `ext`) and a different image-id prefix.
+     Validates that the extractor doesn't depend on Google's volatile
+     class names or any specific id format. -->
+<div id="kp-wholepage">
+  <g-scrolling-carousel>
+    <div class="container">
+      <div class="tile" style="position:absolute">
+        <a href="/search?q=The+Two+Fridas&amp;stick=ABCD1">
+          <img alt="The Two Fridas" id="thumb_fk_1" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-deferred="1">
+          <div class="lbl">
+            <div class="title">The Two Fridas</div>
+            <div class="ext">1939</div>
+          </div>
+        </a>
+      </div>
+      <div class="tile" style="position:absolute">
+        <a href="/search?q=Self-Portrait+with+Thorn+Necklace&amp;stick=ABCD2">
+          <img alt="Self-Portrait with Thorn Necklace and Hummingbird" id="thumb_fk_2" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-deferred="1">
+          <div class="lbl">
+            <div class="title">Self-Portrait with Thorn Necklace and Hummingbird</div>
+            <div class="ext">1940</div>
+          </div>
+        </a>
+      </div>
+      <div class="tile" style="position:absolute">
+        <a href="/search?q=The+Broken+Column&amp;stick=ABCD3">
+          <img alt="The Broken Column" id="thumb_fk_3" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-deferred="1">
+          <div class="lbl">
+            <div class="title">The Broken Column</div>
+            <div class="ext">1944</div>
+          </div>
+        </a>
+      </div>
+      <div class="tile" style="position:absolute">
+        <a href="/search?q=Henry+Ford+Hospital&amp;stick=ABCD4">
+          <img alt="Henry Ford Hospital" id="thumb_fk_4" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-deferred="1">
+          <div class="lbl">
+            <div class="title">Henry Ford Hospital</div>
+            <div class="ext">1932</div>
+          </div>
+        </a>
+      </div>
+      <div class="tile" style="position:absolute">
+        <a href="/search?q=My+Birth&amp;stick=ABCD5">
+          <img alt="My Birth" id="thumb_fk_5" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-deferred="1">
+          <div class="lbl">
+            <div class="title">My Birth</div>
+            <div class="ext">1932</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </g-scrolling-carousel>
+</div>
+
+<!-- Three inline image blobs (only some tiles get inline thumbnails on a
+     real SERP — the rest are lazy-loaded). Two of these use a multi-id
+     `ii` array to confirm that path works. -->
+<script>(function(){var s='data:image/jpeg;base64,FRIDA_BLOB_1';var ii=['thumb_fk_1'];var r='';_setImagesSrc(ii,s,r);})();</script>
+<script>(function(){var s='data:image/jpeg;base64,FRIDA_BLOB_2\x3d\x3d';var ii=['thumb_fk_2','thumb_fk_3'];var r='';_setImagesSrc(ii,s,r);})();</script>
+</body></html>

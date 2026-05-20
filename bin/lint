@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "rbconfig"
+
+files = Dir["lib/**/*.rb", "spec/**/*.rb", "bin/*"]
+files.select! { |path| File.file?(path) }
+files.sort!
+
+failed = []
+
+files.each do |path|
+  ok = system(RbConfig.ruby, "-wc", path)
+  failed << path unless ok
+end
+
+if failed.any?
+  warn "\nLint failed for #{failed.size} file(s):"
+  failed.each { |path| warn "- #{path}" }
+  exit 1
+end
+
+puts "\nLint passed for #{files.size} file(s)."

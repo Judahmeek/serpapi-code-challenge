@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+require "extractor"
+require "json"
+
+if ARGV.empty?
+  warn "Usage: bin/extract <path-to-html>"
+  exit 64
+end
+
+puts JSON.pretty_generate("artworks" => Extractor.call(ARGV[0]))
