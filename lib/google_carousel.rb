@@ -4,6 +4,7 @@ require 'zeitwerk'
 require 'nokogiri'
 require 'logger'
 require 'uri'
+require 'json'
 
 loader = Zeitwerk::Loader.new
 loader.push_dir(__dir__)
@@ -13,6 +14,8 @@ loader.setup
 module GoogleCarousel
   DEFAULT_CONFIG = CarouselConfig.new(
     section_finder: ->(doc) { doc.at_css('#search') },
+    # Known data-attrid values: kc:/visual_art/visual_artist:works (artworks),
+    #   kc:/people/person:movies (filmography), kc:/music/artist:albums (discography)
     carousel_finder: ->(section) { section.css('div').find { |d| d['data-attrid']&.start_with?('kc:/') } },
     item_selector: 'div > a',
     name_extractor: lambda { |node|

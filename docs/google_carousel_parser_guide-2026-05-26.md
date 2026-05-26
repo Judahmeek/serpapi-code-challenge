@@ -63,6 +63,26 @@ items.first.to_h
 # => { name: "The Starry Night", extensions: ["1889"], link: "https://...", image: "data:..." }
 ```
 
+### Serializing to JSON
+
+`JsonSerializer` wraps an array of `CarouselItem` objects and produces a JSON string
+matching the `expected-array.json` format:
+
+```ruby
+items = GoogleCarousel::Parser.new.parse(html, base_url: 'https://www.google.com')
+json  = GoogleCarousel::JsonSerializer.new(items).to_json
+# => '{"artworks":[{"name":"The Starry Night","extensions":["1889"],...}]}'
+```
+
+The root key defaults to `"artworks"` and is overridable:
+
+```ruby
+GoogleCarousel::JsonSerializer.new(items, root_key: 'paintings').to_json
+```
+
+`extensions` is omitted per item when the array is empty. `name`, `link`, and `image`
+are omitted when `nil`.
+
 ---
 
 ## Custom Configuration
@@ -83,7 +103,7 @@ The six configurable callables:
 | Field | Signature | Default behaviour |
 |-------|-----------|-------------------|
 | `section_finder` | `(doc) → node\|nil` | `doc.at_css('#search')` |
-| `carousel_finder` | `(section) → node\|nil` | First `div` whose `data-attrid` starts with `kc:/` |
+| `carousel_finder` | `(section) → node\|nil` | First `div` whose `data-attrid` starts with `kc:/`. Known values: `kc:/visual_art/visual_artist:works` (artworks), `kc:/people/person:movies` (filmography), `kc:/music/artist:albums` (discography) |
 | `item_selector` | CSS string | `'div > a'` |
 | `name_extractor` | `(item_node) → String\|nil` | Layout A name div, falling back to Layout B |
 | `extension_extractor` | `(item_node) → Array<String>` | Layout A extension divs, falling back to Layout B |
@@ -125,7 +145,7 @@ bundle exec rspec spec/google_carousel/parser_spec.rb
 bundle exec rspec spec/google_carousel/parser_spec.rb -e "returns 47 items"
 ```
 
-Expected result: **30 examples, 0 failures**, 100% line coverage.
+Expected result: **36 examples, 0 failures**, 100% line coverage.
 
 A SimpleCov HTML report is written to `coverage/index.html` after every run.
 
@@ -152,12 +172,14 @@ lib/
     parser.rb                    # Orchestrator: section → carousel → items
     item_extractor.rb            # Extracts one CarouselItem from a single <a> node
     image_resolver.rb            # Resolves best image: script map > data-src > src
+    json_serializer.rb           # Serializes CarouselItem array → JSON string with configurable root key
 
 spec/
   google_carousel/
     parser_spec.rb               # Integration, layout, error, and configurability tests
     item_extractor_spec.rb       # Unit tests for ItemExtractor
     image_resolver_spec.rb       # Unit tests for ImageResolver
+    json_serializer_spec.rb      # Unit + integration tests for JsonSerializer
     fixtures/
       books_carousel.html        # Minimal Layout A synthetic fixture (3 items)
       movies_carousel.html       # Minimal Layout B synthetic fixture (3 items)
