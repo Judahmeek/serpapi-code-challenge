@@ -93,5 +93,28 @@ RSpec.describe GoogleCarousel::ItemExtractor do
       item      = extractor.extract(node)
       expect(item.extensions).to eq(['2023'])
     end
+
+    it 'returns raw href when URI.join raises on a malformed href' do
+      html      = '<html><body><a href="  bad uri"><img /><div><div>Name</div></div></a></body></html>'
+      node      = make_node(html)
+      extractor = described_class.new(config, stub_resolver, base_url: 'https://www.google.com')
+      item      = extractor.extract(node)
+      expect(item.link).to eq('  bad uri')
+    end
+
+    it 'returns raw href when base_url is an empty string' do
+      node      = make_node(well_formed_html)
+      extractor = described_class.new(config, stub_resolver, base_url: '')
+      item      = extractor.extract(node)
+      expect(item.link).to eq('/search?q=test')
+    end
+
+    it 'returns nil when the resolved href has a non-http(s) scheme' do
+      html      = '<html><body><a href="data:text/html,evil"><img /><div><div>Name</div></div></a></body></html>'
+      node      = make_node(html)
+      extractor = described_class.new(config, stub_resolver, base_url: 'https://www.google.com')
+      item      = extractor.extract(node)
+      expect(item.link).to be_nil
+    end
   end
 end

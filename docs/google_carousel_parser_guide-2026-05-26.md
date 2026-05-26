@@ -145,7 +145,7 @@ bundle exec rspec spec/google_carousel/parser_spec.rb
 bundle exec rspec spec/google_carousel/parser_spec.rb -e "returns 47 items"
 ```
 
-Expected result: **36 examples, 0 failures**, 100% line coverage.
+Expected result: **42 examples, 0 failures**, 100% line coverage.
 
 A SimpleCov HTML report is written to `coverage/index.html` after every run.
 

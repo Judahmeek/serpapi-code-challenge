@@ -1,6 +1,3 @@
-# frozen_string_literal: true
-
-require 'spec_helper'
 require 'json'
 
 RSpec.describe GoogleCarousel::JsonSerializer do

@@ -14,7 +14,7 @@ module GoogleCarousel
       item_extractor = ItemExtractor.new(@config, ImageResolver.new(document), base_url: base_url)
       items          = find_items(document)
 
-      @logger.info("Found #{items.count} carousel items")
+      @logger.info("Found #{items.size} carousel items")
 
       items.map.with_index(1) do |node, i|
         item = item_extractor.extract(node)
@@ -30,6 +30,7 @@ module GoogleCarousel
       carousel = @config.carousel_finder.call(section) or
         raise ParseError, 'Carousel container not found within section'
 
+      @logger.debug("Carousel container: data-attrid=#{carousel['data-attrid'].inspect}")
       items = carousel.css(@config.item_selector)
       raise ParseError, "No carousel items found (selector: #{@config.item_selector.inspect})" if items.empty?
 

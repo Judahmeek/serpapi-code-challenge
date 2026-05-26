@@ -6,6 +6,8 @@ module GoogleCarousel
   # base URL. Image resolution is delegated to the injected ImageResolver
   # and skipped when the node has no <img> child.
   class ItemExtractor
+    SAFE_LINK_SCHEMES = %w[http https].freeze
+
     def initialize(config, image_resolver, base_url: nil)
       @config         = config
       @image_resolver = image_resolver
@@ -26,9 +28,13 @@ module GoogleCarousel
     private
 
     def resolve_url(href)
-      return href if @base_url.nil? || href.nil?
+      return nil if href.nil?
+      return href if @base_url.nil? || @base_url.empty?
 
-      URI.join(@base_url, href).to_s
+      joined = URI.join(@base_url, href).to_s
+      SAFE_LINK_SCHEMES.include?(URI.parse(joined).scheme) ? joined : nil
+    rescue URI::InvalidURIError, URI::BadURIError
+      href
     end
   end
 end

@@ -58,12 +58,12 @@ bundle exec rspec --format documentation
 
 **Expected output (summary line):**
 ```
-30 examples, 0 failures
+42 examples, 0 failures
 ```
 
 **Expected coverage line (printed after the summary):**
 ```
-Line Coverage: 100.0% (72 / 72)
+Line Coverage: 100.0% (93 / 93)
 ```
 
 **Pass:** Both lines appear exactly as shown.  
@@ -354,8 +354,8 @@ All 47 items match. PASS
 
 | Check | Command | Pass condition |
 |-------|---------|----------------|
-| Full test suite | `bundle exec rspec` | 30 examples, 0 failures |
-| Coverage | (automatic after rspec) | 100.0% (72 / 72) |
+| Full test suite | `bundle exec rspec` | 42 examples, 0 failures |
+| Coverage | (automatic after rspec) | 100.0% (93 / 93) |
 | Integration — Van Gogh | `rspec -e "Van Gogh"` | 2 examples, 0 failures |
 | Layout A — books | `rspec -e "books fixture"` | 5 examples, 0 failures |
 | Layout B — movies | `rspec -e "movies fixture"` | 5 examples, 0 failures |

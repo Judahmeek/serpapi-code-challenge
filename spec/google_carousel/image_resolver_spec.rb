@@ -83,5 +83,38 @@ RSpec.describe GoogleCarousel::ImageResolver do
         expect(resolver.resolve(img)).to eq('data:image/jpeg;base64,img2data')
       end
     end
+
+    context 'multi-id ii arrays' do
+      it 'registers all IDs when ii contains multiple entries' do
+        html = <<~HTML
+          <html><body>
+          <script>var s='data:image/jpeg;base64,shared';var ii=['id1','id2']</script>
+          <img id="id2" src="data:image/gif;base64,placeholder" />
+          </body></html>
+        HTML
+        doc      = make_document(html)
+        img      = doc.at_css('img')
+        resolver = described_class.new(doc)
+        expect(resolver.resolve(img)).to eq('data:image/jpeg;base64,shared')
+      end
+    end
+
+    context 'non-image URI scheme filtering' do
+      it 'returns nil when data-src contains a non-image scheme' do
+        html     = '<html><body><img data-src="javascript:void(0)" src="data:image/gif;base64,p" /></body></html>'
+        doc      = make_document(html)
+        img      = doc.at_css('img')
+        resolver = described_class.new(doc)
+        expect(resolver.resolve(img)).to be_nil
+      end
+
+      it 'returns nil when src contains a non-image data URI' do
+        html     = '<html><body><img src="data:text/html,<script>alert(1)</script>" /></body></html>'
+        doc      = make_document(html)
+        img      = doc.at_css('img')
+        resolver = described_class.new(doc)
+        expect(resolver.resolve(img)).to be_nil
+      end
+    end
   end
 end
