@@ -5,7 +5,7 @@ class ParseError < StandardError; end
 # Top-level orchestrator: takes HTML, locates the carousel section and container
 # via config finders, and extracts each carousel item via ItemExtractor + ImageResolver.
 class Parser
-  def initialize(config: DEFAULT_CONFIG, logger: Logger.new($stdout))
+  def initialize(config: GoogleCarousel, logger: Logger.new($stdout))
     @config = config
     @logger = logger
   end

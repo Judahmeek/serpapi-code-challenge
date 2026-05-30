@@ -16,7 +16,7 @@ class ItemExtractor
   def extract(node)
     img      = node.at_css('img')
     raw_link = @config.link_extractor.call(node)
-    CarouselItem.new(
+    @config.CarouselItem.new(
       name: @config.name_extractor.call(node),
       extensions: @config.extension_extractor.call(node),
       link: resolve_url(raw_link),
