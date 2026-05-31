@@ -24,11 +24,13 @@ class Parser
 
     @logger.info("Found #{items.size} carousel items")
 
-    items.map.with_index(1) do |node, i|
+    extracted_items = items.map.with_index(1) do |node, i|
       item = item_extractor.extract(node)
       @logger.debug("Item #{i}: #{item.name.inspect}")
       item
     end
+
+    serialize_to_json ? JsonSerializer.new(extracted_items).to_json : extracted_items
   end
 
   private

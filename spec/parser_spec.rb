@@ -4,7 +4,7 @@ require_relative './fixtures/custom_carousel'
 
 FILES_DIR    = File.join(__dir__, '..', 'files')
 HTML         = File.read(File.join(FILES_DIR, 'van-gogh-paintings.html'))
-EXPECTED     = JSON.parse(File.read(File.join(FILES_DIR, 'expected-array.json')))
+EXPECTED     = File.read(File.join(FILES_DIR, 'expected-array.json'))
 FIXTURES_DIR = File.join(__dir__, 'fixtures')
 MOVIES_HTML  = File.read(File.join(FIXTURES_DIR, 'movies_carousel.html'))
 BOOKS_HTML   = File.read(File.join(FIXTURES_DIR, 'books_carousel.html'))
@@ -12,11 +12,11 @@ BOOKS_HTML   = File.read(File.join(FIXTURES_DIR, 'books_carousel.html'))
 RSpec.describe Parser do
   let(:parser) { described_class.new(config: GoogleCarousel, logger: Logger.new(File::NULL)) }
 
-  describe '#parse — Van Gogh paintings integration' do
+  describe '#parse — Van Gogh paintings partial integration' do
     subject(:items) { parser.parse(HTML, base_url: 'https://www.google.com') }
 
     let(:expected_items) do
-      EXPECTED['artworks'].map { |a| { extensions: [] }.merge(a.transform_keys(&:to_sym)) }
+      JSON.parse(EXPECTED)['artworks'].map { |a| { extensions: [] }.merge(a.transform_keys(&:to_sym)) }
     end
 
     it 'returns 47 items' do
@@ -25,6 +25,14 @@ RSpec.describe Parser do
 
     it 'matches all items in the expected array exactly' do
       expect(items.map(&:to_h)).to eq(expected_items)
+    end
+  end
+
+  describe '#parse — Van Gogh paintings full integration' do
+    subject(:result) { parser.parse(HTML, base_url: 'https://www.google.com', serialize_to_json: true) }
+
+    it 'matches all items in the expected array exactly' do
+      expect(JSON.parse(result)).to eq(JSON.parse(EXPECTED))
     end
   end
 

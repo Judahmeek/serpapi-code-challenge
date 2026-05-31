@@ -46,13 +46,14 @@ RSpec.describe JsonSerializer do
       expect(parsed['artworks'].first).not_to have_key('image')
     end
 
-    it 'round-trips against expected-array.json' do
-      html     = File.read(File.join(__dir__, '..', '..', 'files', 'van-gogh-paintings.html'))
-      expected = JSON.parse(File.read(File.join(__dir__, '..', '..', 'files', 'expected-array.json')))
-      items    = GoogleCarousel::Parser.new(logger: Logger.new(File::NULL))
-                   .parse(html, base_url: 'https://www.google.com')
-      result   = JSON.parse(described_class.new(items).to_json)
-      expect(result).to eq(expected)
+    it 'does not omit filled extensions' do
+      parsed = JSON.parse(described_class.new([item_with_ext]).to_json)
+      expect(parsed['artworks'].first).to have_key('extensions')
+    end
+
+    it 'does not omit filled fields' do
+      parsed = JSON.parse(described_class.new([item_with_ext]).to_json)
+      expect(parsed['artworks'].first).to have_key('image')
     end
   end
 end
