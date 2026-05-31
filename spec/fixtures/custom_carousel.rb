@@ -3,15 +3,15 @@
 require 'nokolexbor'
 
 # Top-level namespace for the Google Carousel extractor.
-module GoogleCarousel
+module CustomCarousel
   extend self
   CarouselItem = Data.define(:name, :extensions, :link, :image)
 
+  # this method has been changed; all other methods are the same
   def section_finder(doc)
-    doc.at_css('#search')
+    doc.at_css('#custom-section')
   end
-    # Known data-attrid values: kc:/visual_art/visual_artist:works (artworks),
-    #   kc:/people/person:movies (filmography), kc:/music/artist:albums (discography)
+
   def carousel_finder(section)
     section.css('div').find { |d| d['data-attrid']&.start_with?('kc:/') }
   end

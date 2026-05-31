@@ -1,6 +1,8 @@
 require_relative '../lib/parser'
+require_relative '../lib/google_carousel'
+require_relative './fixtures/custom_carousel'
 
-FILES_DIR    = File.join(__dir__, '..', '..', 'files')
+FILES_DIR    = File.join(__dir__, '..', 'files')
 HTML         = File.read(File.join(FILES_DIR, 'van-gogh-paintings.html'))
 EXPECTED     = JSON.parse(File.read(File.join(FILES_DIR, 'expected-array.json')))
 FIXTURES_DIR = File.join(__dir__, 'fixtures')
@@ -8,7 +10,7 @@ MOVIES_HTML  = File.read(File.join(FIXTURES_DIR, 'movies_carousel.html'))
 BOOKS_HTML   = File.read(File.join(FIXTURES_DIR, 'books_carousel.html'))
 
 RSpec.describe Parser do
-  let(:parser) { described_class.new(logger: Logger.new(File::NULL)) }
+  let(:parser) { described_class.new(config: GoogleCarousel, logger: Logger.new(File::NULL)) }
 
   describe '#parse — Van Gogh paintings integration' do
     subject(:items) { parser.parse(HTML, base_url: 'https://www.google.com') }
@@ -110,16 +112,7 @@ RSpec.describe Parser do
         '</div></div></body></html>'
     end
 
-    let(:custom_config) do
-      module CustomCarousel
-        include GoogleCarousel
-        def section_finder(doc)
-          doc.at_css('#custom-section')
-        end
-      end
-    end
-
-    let(:custom_parser) { described_class.new(config: custom_config, logger: Logger.new(File::NULL)) }
+    let(:custom_parser) { described_class.new(config: CustomCarousel, logger: Logger.new(File::NULL)) }
 
     it 'uses the custom section_finder from a derived config' do
       expect(custom_parser.parse(custom_html).first.name).to eq('Custom Item')
