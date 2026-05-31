@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-ruby '4.0.2'
+ruby '3.4.4'
 
 gem 'json',     '~> 2.6'
 gem 'logger'
