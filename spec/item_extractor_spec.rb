@@ -1,12 +1,14 @@
-RSpec.describe GoogleCarousel::ItemExtractor do
-  let(:config) { GoogleCarousel::DEFAULT_CONFIG }
+require_relative '../lib/item_extractor'
+
+RSpec.describe ItemExtractor do
+  let(:config) { GoogleCarousel }
 
   def make_node(html)
     Nokogiri::HTML(html).at_css('a')
   end
 
   def stub_resolver(image_value = nil)
-    resolver = instance_double(GoogleCarousel::ImageResolver)
+    resolver = instance_double(ImageResolver)
     allow(resolver).to receive(:resolve).and_return(image_value)
     resolver
   end

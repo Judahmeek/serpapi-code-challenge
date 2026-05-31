@@ -7,7 +7,6 @@ ruby '4.0.2'
 gem 'json',     '~> 2.6'
 gem 'logger'
 gem 'nokogiri'
-gem 'zeitwerk'
 
 group :development, :test do
   gem 'pry'

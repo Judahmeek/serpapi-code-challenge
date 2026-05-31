@@ -1,3 +1,5 @@
+require_relative '../lib/parser'
+
 FILES_DIR    = File.join(__dir__, '..', '..', 'files')
 HTML         = File.read(File.join(FILES_DIR, 'van-gogh-paintings.html'))
 EXPECTED     = JSON.parse(File.read(File.join(FILES_DIR, 'expected-array.json')))
@@ -5,7 +7,7 @@ FIXTURES_DIR = File.join(__dir__, 'fixtures')
 MOVIES_HTML  = File.read(File.join(FIXTURES_DIR, 'movies_carousel.html'))
 BOOKS_HTML   = File.read(File.join(FIXTURES_DIR, 'books_carousel.html'))
 
-RSpec.describe GoogleCarousel::Parser do
+RSpec.describe Parser do
   let(:parser) { described_class.new(logger: Logger.new(File::NULL)) }
 
   describe '#parse — Van Gogh paintings integration' do
@@ -87,17 +89,17 @@ RSpec.describe GoogleCarousel::Parser do
 
     it 'raises ParseError when the search section is missing' do
       expect { parser.parse(no_section_html) }
-        .to raise_error(GoogleCarousel::ParseError, 'Carousel section not found')
+        .to raise_error(ParseError, 'Carousel section not found')
     end
 
     it 'raises ParseError when the carousel container is missing' do
       expect { parser.parse(no_carousel_html) }
-        .to raise_error(GoogleCarousel::ParseError, 'Carousel container not found within section')
+        .to raise_error(ParseError, 'Carousel container not found within section')
     end
 
     it 'raises ParseError when no carousel items are found' do
       expect { parser.parse(no_items_html) }
-        .to raise_error(GoogleCarousel::ParseError, /No carousel items found/)
+        .to raise_error(ParseError, /No carousel items found/)
     end
   end
 
@@ -109,9 +111,12 @@ RSpec.describe GoogleCarousel::Parser do
     end
 
     let(:custom_config) do
-      GoogleCarousel::DEFAULT_CONFIG.with(
-        section_finder: ->(doc) { doc.at_css('#custom-section') }
-      )
+      module CustomCarousel
+        include GoogleCarousel
+        def section_finder(doc)
+          doc.at_css('#custom-section')
+        end
+      end
     end
 
     let(:custom_parser) { described_class.new(config: custom_config, logger: Logger.new(File::NULL)) }

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'uri'
+
 # Extracts a CarouselItem from a single item node by delegating to the
 # configured extractor lambdas and resolving the link against an optional
 # base URL. Image resolution is delegated to the injected ImageResolver

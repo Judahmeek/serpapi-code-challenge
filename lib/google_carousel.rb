@@ -1,14 +1,6 @@
 # frozen_string_literal: true
 
-require 'zeitwerk'
 require 'nokogiri'
-require 'logger'
-require 'uri'
-require 'json'
-
-loader = Zeitwerk::Loader.new
-loader.push_dir(__dir__)
-loader.setup
 
 # Top-level namespace for the Google Carousel extractor.
 module GoogleCarousel

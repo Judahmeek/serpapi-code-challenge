@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'item_resolver'
+require_relative 'item_extractor'
+require_relative 'google_carousel'
+require 'logger'
+
 class ParseError < StandardError; end
 
 # Top-level orchestrator: takes HTML, locates the carousel section and container

@@ -1,6 +1,7 @@
+require_relative '../lib/json_serializer'
 require 'json'
 
-RSpec.describe GoogleCarousel::JsonSerializer do
+RSpec.describe JsonSerializer do
   let(:item_with_ext) do
     GoogleCarousel::CarouselItem.new(
       name:       'The Starry Night',

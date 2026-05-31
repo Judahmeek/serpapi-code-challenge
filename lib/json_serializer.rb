@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'json'
+
 class JsonSerializer
   def initialize(items, root_key: 'artworks')
     @items    = items

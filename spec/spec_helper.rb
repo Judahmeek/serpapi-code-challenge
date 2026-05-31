@@ -1,10 +1,6 @@
 require 'simplecov'
 SimpleCov.start { add_filter '/spec/' }
 
-require 'json'
-$LOAD_PATH.unshift File.join(__dir__, '..', 'lib')
-require 'google_carousel'
-
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true

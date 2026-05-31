@@ -1,4 +1,6 @@
-RSpec.describe GoogleCarousel::ImageResolver do
+require_relative '../lib/image_resolver'
+
+RSpec.describe ImageResolver do
   def make_document(html)
     Nokogiri::HTML(html)
   end
