@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'nokogiri'
+require 'nokolexbor'
 
 # Top-level namespace for the Google Carousel extractor.
 module GoogleCarousel

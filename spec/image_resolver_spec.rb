@@ -1,8 +1,10 @@
+require 'nokolexbor'
+
 require_relative '../lib/image_resolver'
 
 RSpec.describe ImageResolver do
   def make_document(html)
-    Nokogiri::HTML(html)
+    Nokolexbor::HTML(html)
   end
 
   describe '#resolve' do

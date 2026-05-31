@@ -1,8 +1,5 @@
 # frozen_string_literal: true
-
-require_relative 'item_resolver'
-require_relative 'item_extractor'
-require_relative 'google_carousel'
+require 'nokolexbor'
 require 'logger'
 
 class ParseError < StandardError; end
@@ -16,7 +13,7 @@ class Parser
   end
 
   def parse(html, base_url: nil)
-    document       = Nokogiri::HTML(html)
+    document       = Nokolexbor::HTML(html)
     item_extractor = ItemExtractor.new(@config, ImageResolver.new(document), base_url: base_url)
     items          = find_items(document)
 

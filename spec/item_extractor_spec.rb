@@ -1,10 +1,12 @@
+require 'nokolexbor'
+
 require_relative '../lib/item_extractor'
 
 RSpec.describe ItemExtractor do
   let(:config) { GoogleCarousel }
 
   def make_node(html)
-    Nokogiri::HTML(html).at_css('a')
+    Nokolexbor::HTML(html).at_css('a')
   end
 
   def stub_resolver(image_value = nil)
