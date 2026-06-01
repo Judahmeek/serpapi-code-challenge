@@ -58,7 +58,7 @@ module Extractor
       tile_roots = anchors.map { |a| tile_root_for(a) }.compact.uniq
 
       # Sibling tile roots under the same parent form one carousel candidate.
-      grouped = tile_roots.group_by(&:parent)
+      grouped = tile_roots.group_by { |root| root.parent.to_s.hash + root.parent.element_children.size }
       grouped.delete(nil)
 
       # Drop weak candidates early.
