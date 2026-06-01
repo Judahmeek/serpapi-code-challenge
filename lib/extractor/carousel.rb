@@ -75,7 +75,7 @@ module Extractor
       # Prefer groups that look like media cards.
       with_image = group.count { |tile| tile.at_css("img") }
       # Name-like signals provide a second quality axis.
-      with_name = group.count { |tile| tile.at_css('img[alt], a[aria-label], a[title]') }
+      with_name = group.count { |tile| tile.at_css('img[alt], a[aria-label], div[aria-label], a[title]') }
       [with_image, with_name, group.size]
     end
 

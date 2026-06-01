@@ -10,14 +10,13 @@ module GoogleCarousel
   def section_finder(doc)
     doc.at_css('#search')
   end
-    # Known data-attrid values: kc:/visual_art/visual_artist:works (artworks),
-    #   kc:/people/person:movies (filmography), kc:/music/artist:albums (discography)
+  # Known data-attrid values that do not start with 'kc:' -> RecentPresidents
   def carousel_finder(section)
-    section.css('div').find { |d| d['data-attrid']&.start_with?('kc:/') }
+    section.css('div').find { |d| d['data-attrid'] }
   end
 
   def item_selector
-    'div > a'
+    'div > a' # Won't work for interactive results like 'tom cruise films' (vs 'tom cruise filmography')
   end
 
   def name_extractor(node)
