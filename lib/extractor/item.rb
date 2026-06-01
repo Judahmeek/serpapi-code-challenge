@@ -23,8 +23,8 @@ module Extractor
     end
 
     def to_h
-      # Minimum contract: without anchor or name, tile isn't usable.
-      return nil unless @anchor && name
+      # Minimum contract: without name, tile isn't usable.
+      return nil unless name
 
       {
         "name" => name,
@@ -44,8 +44,10 @@ module Extractor
         # 3) first text block is a final rescue for unusual markup.
         candidates = [
           @img && @img["alt"],
-          @anchor["aria-label"],
-          @anchor["title"],
+          @anchor && @anchor["aria-label"],
+          @anchor && @anchor["title"],
+          @node["aria-label"],
+          @node.at_css("div[aria-label]"),
           first_text_block,
         ]
         candidates.map { |c| c && c.strip }.find { |c| c && !c.empty? }
@@ -59,7 +61,7 @@ module Extractor
     # Google adds extra chips (e.g., medium, location).
     def extensions
       # Leaf-only text prevents container text like "Name1889" from leaking in.
-      leaves = @anchor.css("div, span").reject { |n| n.element_children.any? }
+      leaves = @node.css("div, span").reject { |n| n.element_children.any? }
       texts = leaves.map { |n| n.text.strip }.reject(&:empty?).uniq
       # Remove duplicated title if it appears as a chip.
       texts.delete(name)
@@ -69,8 +71,8 @@ module Extractor
     end
 
     def link
+      return nil unless @anchor
       href = @anchor["href"].to_s
-      return nil if href.empty?
       # Keep existing absolute URLs unchanged.
       return href if href.start_with?("http")
       # Normalize relative Google paths so consumers get absolute links.
@@ -117,7 +119,7 @@ module Extractor
 
     def first_text_block
       # Fallback used only when stronger name signals are missing.
-      @anchor.xpath(".//text()").map(&:to_s).map(&:strip).find { |t| !t.empty? }
+      @node.xpath(".//text()").map(&:to_s).map(&:strip).find { |t| !t.empty? }
     end
   end
 end

@@ -47,15 +47,18 @@ module Extractor
     #      MIN_TILES+ siblings is a carousel candidate.
     def candidate_groups
       # Structural fingerprint that avoids volatile CSS class names.
-      anchors = @document.css('a[href*="stick="]').select do |a|
-        href = a["href"].to_s
-        # Relative and absolute google-search links are both accepted.
-        href.start_with?("/search") || href.include?("google.com/search")
-      end
+      target_section = @document.at_css('#search') || @document
+      target_section = target_section.css('div').find { |d| d['data-attrid'] } || target_section
+      name_element, name_elements = {
+        'img[alt]': target_section.css('img[alt]'),
+        'a[aria-label]': target_section.css('a[aria-label]'),
+        'div[aria-label]': target_section.css('div[aria-label]'),
+        'a[title]': target_section.css('a[title]'),
+      }.max_by { |key, value| value.size }
 
       # Convert each anchor to the smallest "tile root" node that represents
       # one tile (not a nested sub-node, not the whole carousel container).
-      tile_roots = anchors.map { |a| tile_root_for(a) }.compact.uniq
+      tile_roots = name_elements.map { |a| tile_root_for(a, name_element) }.compact.uniq
 
       # Sibling tile roots under the same parent form one carousel candidate.
       grouped = tile_roots.group_by { |root| root.parent.to_s.hash + root.parent.element_children.size }
@@ -85,18 +88,18 @@ module Extractor
       @document.css("*").index(node) || Float::INFINITY
     end
 
-    # Walk up from `anchor` while the current node's parent still contains
-    # only one stick anchor. The last such node is the tile root — adding
+    # Walk up from the current root while the current node's parent still contains
+    # only one specific element. The last such node is the tile root — adding
     # one more level would absorb sibling tiles.
-    def tile_root_for(anchor)
-      node = anchor
+    def tile_root_for(current_root, name_element)
+      node = current_root
       loop do
         parent = node.parent
         return node unless parent
 
         # As soon as parent contains multiple stick anchors, walking higher
         # would merge sibling tiles. Current node is the tile root boundary.
-        stick_count = parent.css('a[href*="stick="]').size
+        stick_count = parent.css(name_element).size
         return node if stick_count != 1
         node = parent
       end

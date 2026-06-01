@@ -53,7 +53,8 @@ RSpec.describe Extractor::Item do
 
   it "returns nil when there is no anchor (malformed tile)" do
     node = tile_from("<div><span>just text</span></div>")
-    expect(described_class.parse(node, thumbnails: {})).to be_nil
+    expected = {"extensions" => nil, "image" => nil, "link" => nil, "name" => "just text"}
+    expect(described_class.parse(node, thumbnails: {})).to eq(expected)
   end
 
   it "falls back to aria-label when img alt is missing" do
