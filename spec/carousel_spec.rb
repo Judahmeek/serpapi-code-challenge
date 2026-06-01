@@ -1,49 +1,50 @@
 require "nokolexbor"
+require "nokogiri"
 
-RSpec.describe Extractor::Carousel do
-  def doc_for(html)
-    Nokolexbor::HTML(html)
+RSpec.describe do
+  html = <<~HTML
+    <html><body>
+      <div id="weak">
+        <div>One</div>
+        <div>Two</div>
+        <div>Three</div>
+      </div>
+      <div id="strong">
+        <div>One</div>
+        <div>Two</div>
+        <div>Three</div>
+      </div>
+      <div id="strong">
+        <div>One</div>
+        <div>Two</div>
+      </div>
+    </body></html>
+  HTML
+
+  it "Nokogiri tracks node object ID" do
+    doc = Nokogiri::HTML(html)
+
+    leaves = doc.css('div > div')
+    expect(leaves.size).to be(8)
+    parent_groups = leaves.group_by(&:parent)
+    expect(parent_groups.size).to be(3)
   end
 
-  it "prefers the candidate group with stronger tile signals when sizes tie" do
-    doc = doc_for(<<~HTML)
-      <html><body>
-        <div id="weak">
-          <div><a href="/search?stick=w1">One</a></div>
-          <div><a href="/search?stick=w2">Two</a></div>
-          <div><a href="/search?stick=w3">Three</a></div>
-        </div>
-        <div id="strong">
-          <div><a href="/search?stick=s1"><img alt="S1"><span>2001</span></a></div>
-          <div><a href="/search?stick=s2"><img alt="S2"><span>2002</span></a></div>
-          <div><a href="/search?stick=s3"><img alt="S3"><span>2003</span></a></div>
-        </div>
-      </body></html>
-    HTML
+  it "Nokolexbor does not track node object ID" do
+    doc = Nokolexbor::HTML(html)
 
-    tiles = described_class.tiles(doc)
-    expect(tiles.size).to eq(3)
-    expect(tiles.first.parent["id"]).to eq("strong")
+    leaves = doc.css('div > div')
+    expect(leaves.size).to be(8)
+    parent_groups = leaves.group_by(&:parent)
+    expect(parent_groups.size).to be(3)
   end
 
-  it "is deterministic on exact ties by picking the first group in DOM order" do
-    doc = doc_for(<<~HTML)
-      <html><body>
-        <div id="first">
-          <div><a href="/search?stick=f1"><img alt="F1"></a></div>
-          <div><a href="/search?stick=f2"><img alt="F2"></a></div>
-          <div><a href="/search?stick=f3"><img alt="F3"></a></div>
-        </div>
-        <div id="second">
-          <div><a href="/search?stick=s1"><img alt="S1"></a></div>
-          <div><a href="/search?stick=s2"><img alt="S2"></a></div>
-          <div><a href="/search?stick=s3"><img alt="S3"></a></div>
-        </div>
-      </body></html>
-    HTML
+  it "Using a combination of hashed serialization and children count seems like a performant compromise" do
+    doc = Nokolexbor::HTML(html)
 
-    tiles = described_class.tiles(doc)
-    expect(tiles.size).to eq(3)
-    expect(tiles.first.parent["id"]).to eq("first")
+    leaves = doc.css('div > div')
+    expect(leaves.size).to be(8)
+    parent_groups = leaves.group_by { |root| root.parent.to_s.hash + root.parent.element_children.size }
+    expect(parent_groups.size).to be(3)
   end
 end
