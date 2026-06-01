@@ -1,8 +1,9 @@
-require "nokogiri"
+require "nokolexbor"
 
 RSpec.describe Extractor::Item do
   def tile_from(html)
-    Nokogiri::HTML.fragment(html).at_css("div")
+    document = Nokolexbor::Document.new
+    document.fragment(html).at_css("div")
   end
 
   it "extracts name from img alt and absolutizes the link" do

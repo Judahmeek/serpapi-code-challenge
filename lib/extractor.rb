@@ -1,4 +1,4 @@
-require "nokogiri"
+require "nokolexbor"
 
 require_relative "extractor/thumbnail_index"
 require_relative "extractor/carousel"
@@ -24,7 +24,7 @@ module Extractor
 
     # Parse once into DOM, then build the thumbnail map once.
     # This avoids repeatedly scanning <script> nodes for every tile.
-    document = Nokogiri::HTML(html)
+    document = Nokolexbor::HTML(html)
     thumbnails = ThumbnailIndex.build(document)
 
     # Keep parse pipeline explicit:

@@ -1,8 +1,8 @@
-require "nokogiri"
+require "nokolexbor"
 
 RSpec.describe Extractor::Carousel do
   def doc_for(html)
-    Nokogiri::HTML(html)
+    Nokolexbor::HTML(html)
   end
 
   it "prefers the candidate group with stronger tile signals when sizes tie" do

@@ -1,8 +1,8 @@
-require "nokogiri"
+require "nokolexbor"
 
 RSpec.describe Extractor::ThumbnailIndex do
   def doc_for(script_body)
-    Nokogiri::HTML("<html><body><script>#{script_body}</script></body></html>")
+    Nokolexbor::HTML("<html><body><script>#{script_body}</script></body></html>")
   end
 
   it "maps a single id to its data URI" do
