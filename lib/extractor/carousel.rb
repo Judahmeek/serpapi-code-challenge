@@ -75,11 +75,12 @@ module Extractor
     #
     # This keeps us anchored on structural evidence instead of class names.
     def group_score(group)
+      score = 0
       # Prefer groups that look like media cards.
-      with_image = group.count { |tile| tile.at_css("img") }
-      # Name-like signals provide a second quality axis.
-      with_name = group.count { |tile| tile.at_css('img[alt], a[aria-label], a[title]') }
-      [with_image, with_name, group.size]
+      score += 1 if group.count { |tile| tile.at_css("img") } == group.size
+      # properly formatted anchor links provide a second quality axis.
+      score += 1 if group.count { |tile| tile.at_css('a[href*="stick="]') } == group.size
+      score * group.size
     end
 
     def document_position(node)
