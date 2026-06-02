@@ -10,12 +10,9 @@ module Extractor
   class ThumbnailIndex
     # Greedy on the data URI body, anchored on the trailing `_setImagesSrc(ii,s,r)`
     # to avoid mis-pairing s/ii from adjacent script blocks.
-    BLOCK_REGEX = /
-      var\s+s\s*=\s*'(?<data>data:image\/[^']+)'\s*;\s*
-      var\s+ii\s*=\s*\[(?<ids>[^\]]*)\]\s*;\s*
-      var\s+r\s*=\s*'[^']*'\s*;\s*
-      _setImagesSrc\(ii,\s*s,\s*r\)
-    /xm.freeze
+      
+      
+    IMAGE_SETTER_REGEX = /_setImagesSrc\((?<id>[a-z]*),\s*(?<source>[a-z]*)/.freeze
 
     ID_REGEX = /'([^']+)'/.freeze
 
@@ -32,16 +29,19 @@ module Extractor
       mapping = {}
       @document.css("script").each do |script|
         body = script.content
-        # Cheap pre-filter avoids regex scanning unrelated scripts.
-        next unless body.include?("_setImagesSrc")
+        desired_variables = body.match(IMAGE_SETTER_REGEX) 
+        next if desired_variables.nil?
 
-        body.scan(BLOCK_REGEX) do
-          match = Regexp.last_match
-          # Decode JS escapes so the resulting data URI matches browser output.
-          data_uri = unescape_js(match[:data])
-          # One data URI can map to multiple image ids.
-          match[:ids].scan(ID_REGEX) { |(id)| mapping[id] = data_uri }
-        end
+        source_regex = /var\s+#{desired_variables[:source]}\s*=\s*'(?<data>data:image\/[^']+)'\s*;/.freeze
+        ids_regex = /var\s+#{desired_variables[:id]}\s*=\s*\[(?<ids>[^\]]*)\]\s*;/.freeze
+        
+        source_result = body.match(source_regex)
+        ids_result = body.match(ids_regex)
+
+        # Decode JS escapes so the resulting data URI matches browser output.
+        data_uri = unescape_js(source_result[:data])
+        # One data URI can map to multiple image ids.
+        ids_result[:ids].scan(ID_REGEX) { |(id)| mapping[id] = data_uri }
       end
       mapping
     end

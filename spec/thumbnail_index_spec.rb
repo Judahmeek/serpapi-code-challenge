@@ -11,6 +11,12 @@ RSpec.describe Extractor::ThumbnailIndex do
     expect(described_class.build(doc_for(body))).to eq("img_1" => "data:image/jpeg;base64,ABC")
   end
 
+  it "can handle different variable names with different script structure" do
+    body = "(function(){var ids=['img_1'];var source='data:image/jpeg;base64,ABC';" \
+           "_setImagesSrc(ids,source);})();"
+    expect(described_class.build(doc_for(body))).to eq("img_1" => "data:image/jpeg;base64,ABC")
+  end
+
   it "maps multiple ids in the same call to the same URI" do
     body = "(function(){var s='data:image/jpeg;base64,XYZ';" \
            "var ii=['a','b','c'];var r='';_setImagesSrc(ii,s,r);})();"
