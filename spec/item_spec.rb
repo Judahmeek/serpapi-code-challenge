@@ -71,6 +71,19 @@ RSpec.describe Extractor::Item do
     expect(out["extensions"]).to eq(["1901"])
   end
 
+  it "prioritizes title over aria-label" do
+    node = tile_from(<<~HTML)
+      <div>
+        <a title="The Better Choice" aria-label="Fallback Name" href="/search?stick=3">
+          <img id="x">
+          <div><div>1901</div></div>
+        </a>
+      </div>
+    HTML
+    out = described_class.parse(node, thumbnails: {})
+    expect(out["name"]).to eq("The Better Choice")
+  end
+
   it "returns in-file thumbnail URL from data-src when present" do
     node = tile_from(<<~HTML)
       <div>

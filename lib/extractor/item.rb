@@ -18,7 +18,7 @@ module Extractor
     def initialize(node, thumbnails)
       @node = node
       @thumbnails = thumbnails
-      @anchor = node.at_css("a[href]")
+      @anchor = node.matches?("a[href]") ? node : node.at_css("a[href]")
       @img = node.at_css("img")
     end
 
@@ -44,13 +44,21 @@ module Extractor
         # 3) first text block is a final rescue for unusual markup.
         candidates = [
           @img && @img["alt"],
-          @anchor && @anchor["aria-label"],
-          @anchor && @anchor["title"],
+          @node["title"],
           @node["aria-label"],
-          @node.at_css("div[aria-label]"),
-          first_text_block,
         ]
-        candidates.map { |c| c && c.strip }.find { |c| c && !c.empty? }
+        result = candidates.map { |c| c && c.strip }.find { |c| c && !c.empty? }
+        if result.nil?
+          title = @node.at_css("[title]")
+          aria = @node.at_css("[aria-label]")
+          candidates = [
+            title && title["title"],
+            aria && aria["aria-label"],
+            first_text_block,
+          ]
+          result = candidates.map { |c| c && c.strip }.find { |c| c && !c.empty? }
+        end
+        result
       end
     end
 

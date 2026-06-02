@@ -21,6 +21,7 @@ module Extractor
     # it without threading it through every method call.
     def initialize(document)
       @document = document
+      @root_selector = nil
     end
 
     def tiles
@@ -49,16 +50,17 @@ module Extractor
       # Structural fingerprint that avoids volatile CSS class names.
       target_section = @document.at_css('#search') || @document
       target_section = target_section.css('div').find { |d| d['data-attrid'] } || target_section
-      name_element, name_elements = {
-        'img[alt]': target_section.css('img[alt]'),
-        'a[aria-label]': target_section.css('a[aria-label]'),
-        'div[aria-label]': target_section.css('div[aria-label]'),
-        'a[title]': target_section.css('a[title]'),
-      }.max_by { |key, value| value.size }
+      best_root_candidate = [
+        { elements: target_section.css('img[alt]'), priority: 0, selector: 'img[alt]' },
+        { elements: target_section.css('[title]'), priority: 1, selector: '[title]' },
+        { elements: target_section.css('[aria-label]'), priority: 2, selector: '[aria-label]' },
+        { elements: target_section.css('a[href*="stick="]'), priority: 3, selector: 'a[href*="stick="]' },
+      ].max_by { |entry| [ entry[:elements].size, -entry[:priority] ] }
+      @root_selector = best_root_candidate[:selector]
 
       # Convert each anchor to the smallest "tile root" node that represents
       # one tile (not a nested sub-node, not the whole carousel container).
-      tile_roots = name_elements.map { |a| tile_root_for(a, name_element) }.compact.uniq
+      tile_roots = best_root_candidate[:elements].map { |a| tile_root_for(a) }.compact.uniq
 
       # Sibling tile roots under the same parent form one carousel candidate.
       grouped = tile_roots.group_by { |root| root.parent.to_s.hash + root.parent.element_children.size }
@@ -70,16 +72,27 @@ module Extractor
 
     # Score shape:
     #   1) tiles with an image element
-    #   2) tiles with a likely name signal
-    #   3) group size
+    #   2) tiles with a properly formatted anchor links
+    #   3) tiles with a likely name signal
+    #   4) group size
     #
     # This keeps us anchored on structural evidence instead of class names.
     def group_score(group)
+      default_weight = ENV.fetch('DEFAULT_TILE_WEIGHT', 1.1).to_f 
+      acceptable_number_of_misformed_tiles = ENV.fetch('ACCEPTABLE_NUMBER_OF_MISFORMED_TILES', 0).to_i
+      tile_img_weight    = ENV.fetch('TILE_IMG_WEIGHT', default_weight).to_f
+      tile_anchor_weight    = ENV.fetch('TILE_ANCHOR_WEIGHT', default_weight).to_f
+      tile_name_weight    = ENV.fetch('TILE_NAME_WEIGHT', default_weight).to_f
       # Prefer groups that look like media cards.
-      with_image = group.count { |tile| tile.at_css("img") }
-      # Name-like signals provide a second quality axis.
-      with_name = group.count { |tile| tile.at_css('img[alt], a[aria-label], a[title]') }
-      [with_image, with_name, group.size]
+      almost_all_tiles_have_images = @root_selector == 'img[alt]' || group.count { |tile| tile.at_css("img") } >= group.size - acceptable_number_of_misformed_tiles
+      img_score = almost_all_tiles_have_images ? tile_img_weight : 1
+      # properly formatted anchor links provide a second quality axis.
+      almost_all_tiles_have_anchors = @root_selector == 'a[href*="stick="]' || group.count { |tile| tile.at_css('a[href*="stick="]') } >= group.size - acceptable_number_of_misformed_tiles
+      anchor_score = almost_all_tiles_have_anchors ? tile_anchor_weight : 1
+      # Name-like signals provide a third quality axis.
+      almost_all_tiles_have_names = ['[title]', '[aria-label]', 'img[alt]'].include?(@root_selector) || group.count { |tile| tile.at_css('[title], [aria-label], img[alt]') } >= group.size - acceptable_number_of_misformed_tiles
+      name_score = almost_all_tiles_have_names ? tile_name_weight : 1
+      group.size * img_score * anchor_score * name_score
     end
 
     def document_position(node)
@@ -91,7 +104,7 @@ module Extractor
     # Walk up from the current root while the current node's parent still contains
     # only one specific element. The last such node is the tile root — adding
     # one more level would absorb sibling tiles.
-    def tile_root_for(current_root, name_element)
+    def tile_root_for(current_root)
       node = current_root
       loop do
         parent = node.parent
@@ -99,7 +112,7 @@ module Extractor
 
         # As soon as parent contains multiple stick anchors, walking higher
         # would merge sibling tiles. Current node is the tile root boundary.
-        stick_count = parent.css(name_element).size
+        stick_count = parent.css(@root_selector).size
         return node if stick_count != 1
         node = parent
       end
