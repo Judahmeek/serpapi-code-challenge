@@ -4,6 +4,7 @@ require_relative "extractor/thumbnail_index"
 require_relative "extractor/carousel"
 require_relative "extractor/item"
 
+# scrapeMemo psuedocode: enabling the Item class to detect whether a relevant scrapeMemo record has been found by the Carousel class would probably require changing the Extractor from a module into a class
 module Extractor
   # Public facade. Returns an Array<Hash> of carousel items.
   #

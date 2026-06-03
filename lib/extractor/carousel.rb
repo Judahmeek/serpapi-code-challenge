@@ -21,11 +21,19 @@ module Extractor
     # it without threading it through every method call.
     def initialize(document)
       @document = document
-      @root_selector = nil
     end
 
     def tiles
-      groups = candidate_groups
+      # scrapeMemo psuedocode: create empty scrapeMemo hash, which will serve as an index for future parsing of the same search result structure (data-attrid, tile grid container class, tile root class, tile count, name_attribute, image_script_variable_names)
+      target_section = @document.at_css('#search') || @document
+      # scrapeMemo psuedocode: if '#search' can't be found, add that to scrapeMemo hash
+      target_section = target_section.css('div').find { |d| d['data-attrid'] } || target_section
+      # scrapeMemo psuedocode: if div['data-attrid'] can't be found, add that to scrapeMemo hash
+      # scrapeMemo psuedocode: check database for any records containing the same ['data-attrid'] value
+      # scrapeMemo psuedocode: if one or more record(s) exist, scan for the tile grid container class, prioritizing the record most recently created
+      # scrapeMemo psuedocode: if the tile grid container exists & has the expected number of children with the expected tile root class, set them as the tile roots & skip the rest of this function
+
+      groups = candidate_groups(target_section)
       return [] if groups.empty?
 
       # Multiple stick-link groups can exist on one page. We prefer the group
@@ -36,38 +44,23 @@ module Extractor
       best_score = scored.map(&:first).max
       best_groups = scored.select { |score, _| score == best_score }.map(&:last)
       best_groups.min_by { |g| document_position(g.first) } || []
+      # scrapeMemo psuedocode: just like with the div['data-attrid'] value before, we can now check the tile grid container class, tile root class, tile count, as well as the div['data-attrid'] value against recorded indexes to check for search result structure drift
     end
 
     private
 
-    # Build candidate groups by:
-    #   1. Finding every `/search?…&stick=…` anchor.
-    #   2. Walking each anchor up to its *tile root* — the highest ancestor
-    #      that still contains exactly one stick anchor.
-    #   3. Grouping tile roots by their common parent. A group with
-    #      MIN_TILES+ siblings is a carousel candidate.
-    def candidate_groups
-      # Structural fingerprint that avoids volatile CSS class names.
-      target_section = @document.at_css('#search') || @document
-      target_section = target_section.css('div').find { |d| d['data-attrid'] } || target_section
-      best_root_candidate = [
-        { elements: target_section.css('img[alt]'), priority: 0, selector: 'img[alt]' },
-        { elements: target_section.css('[title]'), priority: 1, selector: '[title]' },
-        { elements: target_section.css('[aria-label]'), priority: 2, selector: '[aria-label]' },
-        { elements: target_section.css('a[href*="stick="]'), priority: 3, selector: 'a[href*="stick="]' },
-      ].max_by { |entry| [ entry[:elements].size, -entry[:priority] ] }
-      @root_selector = best_root_candidate[:selector]
+    # before = Time.now
+    # for i in 1..1000
+    #   candidate_groups(target_section)
+    # end
+    # after = Time.now
+    # puts "new version benchmarked at #{after - before}"
 
-      # Convert each anchor to the smallest "tile root" node that represents
-      # one tile (not a nested sub-node, not the whole carousel container).
-      tile_roots = best_root_candidate[:elements].map { |a| tile_root_for(a) }.compact.uniq
-
-      # Sibling tile roots under the same parent form one carousel candidate.
-      grouped = tile_roots.group_by { |root| root.parent.to_s.hash + root.parent.element_children.size }
-      grouped.delete(nil)
-
-      # Drop weak candidates early.
-      grouped.values.select { |g| g.size >= MIN_TILES }
+    # Build candidate groups by finding the three biggest sibling groups within the target section
+    # I tested this versus the previous implementation with the quick & dirty benchmark commented out above
+    # against the van-gogh-paintings.html results and found this to be about x10 faster.
+    def candidate_groups(target_section)
+      target_section.css('div', 'section', 'main').max_by(3) { |element| element.element_children.count }.map { |e| e.element_children }
     end
 
     # Score shape:
@@ -84,13 +77,15 @@ module Extractor
       tile_anchor_weight    = ENV.fetch('TILE_ANCHOR_WEIGHT', default_weight).to_f
       tile_name_weight    = ENV.fetch('TILE_NAME_WEIGHT', default_weight).to_f
       # Prefer groups that look like media cards.
-      almost_all_tiles_have_images = @root_selector == 'img[alt]' || group.count { |tile| tile.at_css("img") } >= group.size - acceptable_number_of_misformed_tiles
+      almost_all_tiles_have_images = group.count { |tile| tile.at_css("img") } >= group.size - acceptable_number_of_misformed_tiles
       img_score = almost_all_tiles_have_images ? tile_img_weight : 1
       # properly formatted anchor links provide a second quality axis.
-      almost_all_tiles_have_anchors = @root_selector == 'a[href*="stick="]' || group.count { |tile| tile.at_css('a[href*="stick="]') } >= group.size - acceptable_number_of_misformed_tiles
+      almost_all_tiles_have_anchors = group.count { |tile| tile.at_css('a[href*="stick="]') } >= group.size - acceptable_number_of_misformed_tiles
       anchor_score = almost_all_tiles_have_anchors ? tile_anchor_weight : 1
       # Name-like signals provide a third quality axis.
-      almost_all_tiles_have_names = ['[title]', '[aria-label]', 'img[alt]'].include?(@root_selector) || group.count { |tile| tile.at_css('[title], [aria-label], img[alt]') } >= group.size - acceptable_number_of_misformed_tiles
+      # I didn't think that searching for each name candidate individually to enforce uniformity
+      # was worth the performance cost, but it is a tradeoff worth discussing in a code review
+      almost_all_tiles_have_names = group.count { |tile| tile.at_css('[title], [aria-label], img[alt]') } >= group.size - acceptable_number_of_misformed_tiles
       name_score = almost_all_tiles_have_names ? tile_name_weight : 1
       group.size * img_score * anchor_score * name_score
     end
@@ -99,23 +94,6 @@ module Extractor
       return Float::INFINITY unless node
       # DOM-order fallback is stable and explainable.
       @document.css("*").index(node) || Float::INFINITY
-    end
-
-    # Walk up from the current root while the current node's parent still contains
-    # only one specific element. The last such node is the tile root — adding
-    # one more level would absorb sibling tiles.
-    def tile_root_for(current_root)
-      node = current_root
-      loop do
-        parent = node.parent
-        return node unless parent
-
-        # As soon as parent contains multiple stick anchors, walking higher
-        # would merge sibling tiles. Current node is the tile root boundary.
-        stick_count = parent.css(@root_selector).size
-        return node if stick_count != 1
-        node = parent
-      end
     end
   end
 end

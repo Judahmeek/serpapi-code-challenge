@@ -5,69 +5,25 @@ RSpec.describe Extractor::Carousel do
     Nokolexbor::HTML(html)
   end
 
-  context "when sizes tie" do
-    it "prioritizes image elements with alt attributes over elements with title attributes" do
-      doc = doc_for(<<~HTML)
-        <html><body>
-          <div id="title">
-            <div><div title="one"></div><img></a></div>
-            <div><div title="two"></div><img></a></div>
-            <div><div title="three"></div><img></a></div>
-          </div>
-          <div id="alt">
-            <div><img alt="S1"></div>
-            <div><img alt="S2"></div>
-            <div><img alt="S3"></div>
-          </div>
-        </body></html>
-      HTML
+  it "is deterministic on exact ties by picking the first group in DOM order when sizes tie" do
+    doc = doc_for(<<~HTML)
+      <html><body>
+        <div id="first">
+          <div><a href="/search?stick=f1"><img alt="F1"></a></div>
+          <div><a href="/search?stick=f2"><img alt="F2"></a></div>
+          <div><a href="/search?stick=f3"><img alt="F3"></a></div>
+        </div>
+        <div id="second">
+          <div><a href="/search?stick=s1"><img alt="S1"></a></div>
+          <div><a href="/search?stick=s2"><img alt="S2"></a></div>
+          <div><a href="/search?stick=s3"><img alt="S3"></a></div>
+        </div>
+      </body></html>
+    HTML
 
-      tiles = described_class.tiles(doc)
-      expect(tiles.size).to eq(3)
-      expect(tiles.first.parent["id"]).to eq("alt")
-    end
-
-    it "prioritizes elements with title attributes over aria-labels" do
-      doc = doc_for(<<~HTML)
-        <html><body>
-          <div id="aria">
-            <div><div aria-label="one"></div><img></a></div>
-            <div><div aria-label="two"></div><img></a></div>
-            <div><div aria-label="three"></div><img></a></div>
-          </div>
-          <div id="title">
-            <div><div title="one"></div><img></a></div>
-            <div><div title="two"></div><img></a></div>
-            <div><div title="three"></div><img></a></div>
-          </div>
-        </body></html>
-      HTML
-
-      tiles = described_class.tiles(doc)
-      expect(tiles.size).to eq(3)
-      expect(tiles.first.parent["id"]).to eq("title")
-    end
-
-    it "is deterministic on exact ties by picking the first group in DOM order" do
-      doc = doc_for(<<~HTML)
-        <html><body>
-          <div id="first">
-            <div><a href="/search?stick=f1"><img alt="F1"></a></div>
-            <div><a href="/search?stick=f2"><img alt="F2"></a></div>
-            <div><a href="/search?stick=f3"><img alt="F3"></a></div>
-          </div>
-          <div id="second">
-            <div><a href="/search?stick=s1"><img alt="S1"></a></div>
-            <div><a href="/search?stick=s2"><img alt="S2"></a></div>
-            <div><a href="/search?stick=s3"><img alt="S3"></a></div>
-          </div>
-        </body></html>
-      HTML
-
-      tiles = described_class.tiles(doc)
-      expect(tiles.size).to eq(3)
-      expect(tiles.first.parent["id"]).to eq("first")
-    end
+    tiles = described_class.tiles(doc)
+    expect(tiles.size).to eq(3)
+    expect(tiles.first.parent["id"]).to eq("first")
   end
 
   describe "group score & quality weights" do

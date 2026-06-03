@@ -8,12 +8,6 @@ module Extractor
   # thumbnail is injected at runtime against the image id(s) listed in `ii`.
   # We replicate that mapping at parse time so no JS execution is required.
   class ThumbnailIndex
-    # Greedy on the data URI body, anchored on the trailing `_setImagesSrc(ii,s,r)`
-    # to avoid mis-pairing s/ii from adjacent script blocks.
-      
-      
-    IMAGE_SETTER_REGEX = /_setImagesSrc\((?<id>[a-z]*),\s*(?<source>[a-z]*)/.freeze
-
     ID_REGEX = /'([^']+)'/.freeze
 
     # Public convenience API.
@@ -26,15 +20,22 @@ module Extractor
     end
 
     def build
+      # scrapeMemo psuedocode: if the Carousel class detected a relevant scrapeMemo index, then the recorded function name, variable names, and variable order (maybe?) could be used to construct a single regex instead of the three different regexes I'm using
+      image_setter_regex = /_setImagesSrc\((?<id>[a-z]*),\s*(?<source>[a-z]*)/.freeze
       mapping = {}
       @document.css("script").each do |script|
         body = script.content
-        desired_variables = body.match(IMAGE_SETTER_REGEX) 
+        desired_variables = body.match(image_setter_regex)
+        # instead of skipping if the image_setter_regex fails to match because the image_setter function has been renamed, we could modify the source & ids regexes to look for properly formatted variable assignments & then look for a function taking those variables as parameters near the very end of the script
+        # Something like...
+        # source_regex = /var\s+(?<source_variable>\w+)\s*=\s*'(?<data>data:image\/[^']+)'\s*;/.freeze
+        # ids_regex = /var\s+(?<ids_variable>\w+)\s*=\s*\[(?<ids>[^\]]*)\]\s*;/.freeze
+        # image_setter_regex = /(?<function_name>\w+)\((#{source_variable}|#{ids_variable}),\s*(#{source_variable}|#{ids_variable}).{,12}\z/.freeze
         next if desired_variables.nil?
 
         source_regex = /var\s+#{desired_variables[:source]}\s*=\s*'(?<data>data:image\/[^']+)'\s*;/.freeze
         ids_regex = /var\s+#{desired_variables[:id]}\s*=\s*\[(?<ids>[^\]]*)\]\s*;/.freeze
-        
+
         source_result = body.match(source_regex)
         ids_result = body.match(ids_regex)
 

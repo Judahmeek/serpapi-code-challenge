@@ -37,6 +37,7 @@ module Extractor
     private
 
     def name
+      # scrapeMemo psuedocode: if the Carousel class detected a relevant scrapeMemo index, then the recorded name candidate can be checked for first
       @name ||= begin
         # Ordered fallback chain:
         # 1) <img alt> is usually canonical title on Google tiles.
