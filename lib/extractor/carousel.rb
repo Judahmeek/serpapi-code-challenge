@@ -24,10 +24,10 @@ module Extractor
     end
 
     def tiles
-      # scrapeMemo psuedocode: create empty scrapeMemo hash, which will serve as an index for future parsing of the same search result structure (data-attrid, tile grid container class, tile root class, tile count, name_attribute, image_script_variable_names)
+      # scrapeMemo psuedocode: create empty scrapeMemo hash, which will serve as an index for future parsing of the same search result structure (data-attrid, whether target grid is inside div#search or not, tile grid container class, tile root class, tile count, name_attribute, image_script_variable_names)
       target_section = @document.at_css('#search') || @document
       # scrapeMemo psuedocode: if '#search' can't be found, add that to scrapeMemo hash
-      target_section = target_section.css('div').find { |d| d['data-attrid'] } || target_section
+      target_section = target_section.css('div').find { |d| d['data-attrid'] } || @document.css('div').find { |d| d['data-attrid'] } || target_section
       # scrapeMemo psuedocode: if div['data-attrid'] can't be found, add that to scrapeMemo hash
       # scrapeMemo psuedocode: check database for any records containing the same ['data-attrid'] value
       # scrapeMemo psuedocode: if one or more record(s) exist, scan for the tile grid container class, prioritizing the record most recently created

@@ -31,7 +31,7 @@ module Extractor
         "extensions" => extensions,
         "link" => link,
         "image" => image,
-      }
+      }.compact
     end
 
     private

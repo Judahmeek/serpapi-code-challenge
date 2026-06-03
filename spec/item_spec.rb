@@ -53,7 +53,7 @@ RSpec.describe Extractor::Item do
 
   it "returns nil when there is no anchor (malformed tile)" do
     node = tile_from("<div><span>just text</span></div>")
-    expected = {"extensions" => nil, "image" => nil, "link" => nil, "name" => "just text"}
+    expected = {"name" => "just text"}
     expect(described_class.parse(node, thumbnails: {})).to eq(expected)
   end
 
